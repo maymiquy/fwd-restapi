@@ -81,7 +81,43 @@ class ProductController extends Controller
      */
     public function update(Request $request, string $id)
     {
-        //
+        // Mengambil semua input dari request
+        $input = $request->all();
+
+        // Validasi input
+        $validator = Validator::make($input, [
+            'name' => 'sometimes|required|string|max:100',
+            'description' => 'sometimes|required|string|max:245',
+            'price' => 'sometimes|required|numeric',
+        ]);
+
+        // Cek apakah validasi gagal
+        if ($validator->fails()) {
+            return response()->json([
+                'message' => 'error',
+                'error' => $validator->errors()
+            ]);
+        }
+
+        // Cari produk berdasarkan ID
+        $product = Product::find($id);
+
+        // Jika produk tidak ditemukan
+        if (!$product) {
+            return response()->json([
+                'message' => 'error',
+                'error' => 'Product not found'
+            ], 404);
+        }
+
+        // Update data produk
+        $product->update($input);
+
+        // Response berhasil
+        return response()->json([
+            'message' => 'success',
+            'data' => new ProductResource($product),
+        ]);
     }
 
     /**
@@ -89,6 +125,16 @@ class ProductController extends Controller
      */
     public function destroy(string $id)
     {
-        //
+        // Cari produk berdasarkan ID
+        $product = Product::find($id)->first();
+
+        // Hapus produk
+        $product->delete();
+
+        // Response berhasil
+        return response()->json([
+            'message' => 'success',
+            'data' => 'Product has been deleted',
+        ]);
     }
 }
